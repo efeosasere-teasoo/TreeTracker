@@ -1,0 +1,6 @@
+{
+  "name": "TreeTracker",
+  "description": "A minimalist reforestation management application for tracking land plots and tree asset inventory.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["Dashboard", "Plot Management", "Tree Inventory"]
+}
