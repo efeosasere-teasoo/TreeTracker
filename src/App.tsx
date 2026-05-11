@@ -51,10 +51,10 @@ export default function App() {
   ];
 
   return (
-    <div className="flex h-screen bg-stone-50 text-stone-800 font-sans overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-72 bg-white border-r border-stone-200 flex flex-col shrink-0">
-        <div className="h-16 px-8 flex items-center gap-3 border-b border-stone-200">
+    <div className="flex flex-col md:flex-row h-screen bg-stone-50 text-stone-800 font-sans overflow-hidden">
+      {/* Sidebar - Desktop Only */}
+      <aside className="hidden md:flex w-64 lg:w-72 bg-white border-r border-stone-200 flex-col shrink-0">
+        <div className="h-16 px-6 lg:px-8 flex items-center gap-3 border-b border-stone-200">
           <div className="bg-emerald-600 w-8 h-8 rounded flex items-center justify-center text-white shadow-sm">
             <TreePine size={20} />
           </div>
@@ -63,15 +63,15 @@ export default function App() {
 
         <div className="p-6 flex-1 flex flex-col space-y-6">
           <nav className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-3">Project Management</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-3 pl-2">Management</label>
             {menuItems.map((item) => (
               <button
                 key={item.id}
-                id={`nav-${item.id}`}
+                id={`nav-desktop-${item.id}`}
                 onClick={() => setCurrentView(item.id as View)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 group ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group ${
                   currentView === item.id
-                    ? 'bg-emerald-50 text-emerald-900 border border-emerald-100 font-semibold'
+                    ? 'bg-emerald-50 text-emerald-900 border border-emerald-100 font-semibold shadow-sm'
                     : 'text-stone-500 hover:bg-stone-50'
                 }`}
               >
@@ -80,24 +80,14 @@ export default function App() {
                   <span className="text-sm">{item.label}</span>
                 </div>
                 {currentView === item.id && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <motion.div layoutId="active-indicator" className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                 )}
               </button>
             ))}
           </nav>
 
-          <div className="pt-4">
-            <button 
-              onClick={() => setCurrentView('plots')} // Example entry point for "New Entry"
-              className="w-full py-3 bg-stone-900 text-white rounded-lg text-sm font-bold shadow-lg flex items-center justify-center gap-2 hover:bg-black transition-colors"
-            >
-              <Plus size={16} />
-              <span>New Entry</span>
-            </button>
-          </div>
-
           {!isConfigured && (
-            <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+            <div className="mt-auto p-4 bg-amber-50 border border-amber-100 rounded-xl">
               <button 
                 onClick={() => setCurrentView('setup')}
                 className="flex items-center gap-2 text-amber-700 text-xs font-bold uppercase tracking-wider"
@@ -111,7 +101,7 @@ export default function App() {
 
         <div className="p-6 border-t border-stone-200">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-stone-200 border border-stone-300 flex items-center justify-center text-[10px] font-bold text-stone-600">
+            <div className="w-8 h-8 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-[10px] font-bold text-stone-600">
               EO
             </div>
             <div className="flex-1 overflow-hidden">
@@ -122,19 +112,31 @@ export default function App() {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-stone-200 px-8 flex items-center justify-between shrink-0 shadow-sm">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg font-bold text-stone-800 tracking-tight capitalize">
-              {currentView === 'setup' ? 'Configuration' : currentView}
-            </h2>
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-full overflow-hidden relative pb-20 md:pb-0">
+        {/* Mobile Header */}
+        <header className="md:hidden h-14 bg-white border-b border-stone-200 px-4 flex items-center justify-between shrink-0 sticky top-0 z-50">
+          <div className="flex items-center gap-2">
+            <div className="bg-emerald-600 w-6 h-6 rounded flex items-center justify-center text-white">
+              <TreePine size={14} />
+            </div>
+            <h1 className="font-bold text-sm tracking-tight text-stone-800 uppercase">TreeTracker</h1>
           </div>
+          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest truncate max-w-[120px]">
+            {currentView}
+          </h2>
+        </header>
+
+        {/* Desktop Header */}
+        <header className="hidden md:flex h-16 bg-white border-b border-stone-200 px-8 items-center justify-between shrink-0 shadow-sm">
+          <h2 className="text-lg font-bold text-stone-800 tracking-tight capitalize">
+            {currentView === 'setup' ? 'Configuration' : currentView}
+          </h2>
           <div className="flex items-center gap-6">
             <div className="flex gap-4 text-xs font-bold text-stone-400 uppercase tracking-widest border-r border-stone-200 pr-6">
               <span className="text-emerald-700 border-b-2 border-emerald-700 pb-1">Primary</span>
-              <span>Regional</span>
-              <span>Global</span>
+              <span className="hover:text-stone-600 cursor-pointer transition-colors">Regional</span>
+              <span className="hover:text-stone-600 cursor-pointer transition-colors">Global</span>
             </div>
             <button className="p-2 text-stone-300 hover:text-stone-500 transition-colors">
               <Info size={20} />
@@ -142,16 +144,17 @@ export default function App() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8">
-          <div className="max-w-6xl mx-auto">
+        {/* View Content */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-8">
+          <div className="max-w-6xl mx-auto w-full">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentView}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-                className="h-full"
+                initial={{ opacity: 0, scale: 0.98, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98, y: -8 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                className="w-full"
               >
                 {currentView === 'dashboard' && <Dashboard onNavigate={(v) => setCurrentView(v as View)} />}
                 {currentView === 'plots' && <PlotList />}
@@ -162,6 +165,31 @@ export default function App() {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* Mobile Bottom Navigation */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-stone-200 flex items-center justify-around px-2 pb-safe z-50">
+          {menuItems.map((item) => (
+            <button
+              key={item.id}
+              id={`nav-mobile-${item.id}`}
+              onClick={() => setCurrentView(item.id as View)}
+              className="flex flex-col items-center gap-1 min-w-[64px] transition-all"
+            >
+              <div className={`p-2 rounded-xl transition-all ${
+                currentView === item.id 
+                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' 
+                  : 'text-stone-400'
+              }`}>
+                <item.icon size={20} />
+              </div>
+              <span className={`text-[10px] font-bold uppercase tracking-tighter ${
+                currentView === item.id ? 'text-emerald-700' : 'text-stone-400'
+              }`}>
+                {item.label === 'Database Setup' ? 'Setup' : item.label}
+              </span>
+            </button>
+          ))}
+        </nav>
       </main>
     </div>
   );

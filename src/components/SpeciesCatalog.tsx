@@ -128,7 +128,7 @@ export default function SpeciesCatalog() {
           <Loader2 className="animate-spin text-emerald-600" size={32} />
         </div>
       ) : (
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <AnimatePresence>
             {filtered.map((item) => (
               <motion.div
@@ -137,24 +137,24 @@ export default function SpeciesCatalog() {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white p-6 rounded-2xl border border-stone-200 shadow-theme-sm group relative"
+                className="bg-white p-5 md:p-6 rounded-2xl border border-stone-200 shadow-theme-sm group relative active:bg-stone-50 transition-colors"
               >
-                <div className="flex items-start justify-between mb-2">
+                <div className="flex items-start justify-between mb-3 md:mb-2">
                   <div className="bg-emerald-50 text-emerald-600 p-2 rounded-lg">
                     <Leaf size={20} />
                   </div>
-                  <div className="flex gap-1">
-                    <button onClick={() => handleEdit(item)} className="p-1.5 text-stone-300 hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Edit2 size={14} />
+                  <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => handleEdit(item)} className="p-2 text-stone-400 hover:text-emerald-600 active:bg-emerald-100 rounded-lg">
+                      <Edit2 size={16} />
                     </button>
-                    <button onClick={() => handleDelete(item.species_id)} className="p-1.5 text-stone-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Trash2 size={14} />
+                    <button onClick={() => handleDelete(item.species_id)} className="p-2 text-stone-400 hover:text-red-500 active:bg-red-100 rounded-lg">
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
-                <h3 className="font-bold text-stone-800 text-lg leading-tight">{item.common_name}</h3>
-                <div className="flex items-center gap-2 text-stone-400 mt-1 italic text-sm">
-                  <Dna size={12} />
+                <h3 className="font-bold text-stone-800 text-base md:text-lg leading-tight">{item.common_name}</h3>
+                <div className="flex items-center gap-2 text-stone-400 mt-2 md:mt-1 italic text-xs md:text-sm">
+                  <Dna size={12} className="shrink-0" />
                   {item.scientific_name}
                 </div>
               </motion.div>

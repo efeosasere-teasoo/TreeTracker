@@ -106,7 +106,7 @@ export default function PlotList() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 max-w-2xl w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
           <input
             type="text"
@@ -118,10 +118,10 @@ export default function PlotList() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-stone-900 text-white rounded-lg text-sm font-bold hover:bg-black transition-all shadow-lg"
+          className="flex items-center justify-center gap-2 px-6 py-4 md:py-3 bg-stone-900 text-white rounded-lg text-sm font-bold active:bg-black md:hover:bg-black transition-all shadow-lg w-full md:w-auto"
         >
           <Plus size={18} />
-          Add Land Plot
+          Add Sector
         </button>
       </div>
 
@@ -130,7 +130,7 @@ export default function PlotList() {
           <Loader2 className="animate-spin text-emerald-600" size={32} />
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <AnimatePresence>
             {filteredPlots.map((plot) => (
               <motion.div
@@ -139,16 +139,16 @@ export default function PlotList() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white p-6 rounded-2xl border border-stone-200 shadow-theme-sm hover:shadow-theme-lg transition-all group relative"
+                className="bg-white p-5 md:p-6 rounded-2xl border border-stone-200 shadow-theme-sm md:hover:shadow-theme-lg transition-all group relative active:bg-stone-50 md:active:bg-white"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-stone-800 tracking-tight">{plot.sector_name}</h3>
-                    <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest">{plot.baseline_land_use}</p>
+                    <h3 className="text-base md:text-lg font-bold text-stone-800 tracking-tight leading-tight">{plot.sector_name}</h3>
+                    <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-0.5">{plot.baseline_land_use}</p>
                   </div>
                   <button 
                     onClick={() => handleDelete(plot.plot_id)}
-                    className="p-2 text-stone-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                    className="p-2 text-stone-300 hover:text-red-500 active:text-red-500 active:bg-red-50 rounded-lg transition-all md:opacity-0 md:group-hover:opacity-100"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -156,28 +156,30 @@ export default function PlotList() {
 
                 <div className="grid grid-cols-2 gap-4 py-4 border-y border-stone-50 my-2">
                   <div className="space-y-1">
-                    <p className="text-[10px] text-stone-400 uppercase font-black tracking-tighter">COORDINATES</p>
-                    <div className="flex items-center gap-1.5 text-xs font-mono font-medium text-stone-600">
-                      <MapPin size={12} className="text-emerald-600" />
-                      {plot.latitude.toFixed(4)}, {plot.longitude.toFixed(4)}
+                    <p className="text-[10px] text-stone-400 uppercase font-bold tracking-widest">COORDINATES</p>
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-stone-600">
+                      <MapPin size={12} className="text-emerald-600 shrink-0" />
+                      <span className="truncate">{plot.latitude.toFixed(3)}, {plot.longitude.toFixed(3)}</span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] text-stone-400 uppercase font-black tracking-tighter">TOTAL AREA</p>
+                    <p className="text-[10px] text-stone-400 uppercase font-bold tracking-widest">TOTAL AREA</p>
                     <div className="flex items-center gap-1.5 text-xs font-bold text-stone-700">
-                      <Maximize2 size={12} className="text-blue-500" />
+                      <Maximize2 size={12} className="text-blue-500 shrink-0" />
                       {plot.area_hectares} HA
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between mt-4">
-                  <div className="flex items-center gap-2 px-3 py-1 bg-stone-50 rounded border border-stone-100">
-                    <Calendar size={12} className="text-stone-400" />
-                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-tight">Started: {new Date(plot.project_start_date).toLocaleDateString()}</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-stone-50 rounded-lg border border-stone-100 max-w-[60%]">
+                    <Calendar size={12} className="text-stone-400 shrink-0" />
+                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-tight truncate">
+                      {new Date(plot.project_start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}
+                    </span>
                   </div>
-                  <div className="text-[9px] font-mono text-stone-200 uppercase">
-                    Ref: {plot.plot_id.slice(0, 8)}
+                  <div className="text-[9px] font-mono text-stone-300 uppercase shrink-0">
+                    ID: {plot.plot_id.slice(0, 8)}
                   </div>
                 </div>
               </motion.div>

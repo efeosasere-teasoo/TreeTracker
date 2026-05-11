@@ -173,75 +173,124 @@ export default function TreeList() {
           <Loader2 className="animate-spin text-emerald-600" size={32} />
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-theme-sm">
-          <div className="px-6 py-4 border-b border-stone-100 bg-white">
-            <h2 className="font-bold text-stone-700">Asset Inventory</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-stone-50 border-b border-stone-100 text-stone-400 text-[10px] uppercase font-bold tracking-widest">
-                <tr>
-                  <th className="px-6 py-4">Tree Asset ID</th>
-                  <th className="px-6 py-4">Species</th>
-                  <th className="px-6 py-4">Sector / Block</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-50">
-                <AnimatePresence>
-                  {filteredTrees.map((tree) => (
-                    <motion.tr
-                      key={tree.tree_id}
-                      layout
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="group hover:bg-stone-50 transition-colors text-sm"
-                    >
-                      <td className="px-6 py-4 font-mono text-xs text-stone-400">
-                        {tree.tree_id.slice(0, 8).toUpperCase()}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-bold text-stone-800">{tree.tree_type}</div>
-                        <div className="text-[10px] text-stone-400 font-bold uppercase tracking-tight">Status: Healthy</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-stone-500">
-                          <MapPin size={14} className="text-stone-300" />
-                          <span className="font-medium">{tree.plots?.sector_name || 'Unassigned'}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button 
-                            onClick={() => handleEdit(tree)}
-                            className="p-2 text-stone-200 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                          >
-                            <Edit2 size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(tree.tree_id)}
-                            className="p-2 text-stone-200 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </div>
-          
-          {filteredTrees.length === 0 && !loading && (
-            <div className="py-20 text-center space-y-4">
-              <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mx-auto text-stone-200">
-                <TreePine size={32} />
-              </div>
-              <p className="text-stone-400 font-medium text-sm">No asset records found in this view.</p>
+        <div className="space-y-4">
+          <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden shadow-theme-sm">
+            <div className="px-6 py-4 border-b border-stone-100 bg-white">
+              <h2 className="font-bold text-stone-700">Asset Inventory</h2>
             </div>
-          )}
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-stone-50 border-b border-stone-100 text-stone-400 text-[10px] uppercase font-bold tracking-widest">
+                  <tr>
+                    <th className="px-6 py-4">Tree Asset ID</th>
+                    <th className="px-6 py-4">Species</th>
+                    <th className="px-6 py-4">Sector / Block</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-50">
+                  <AnimatePresence>
+                    {filteredTrees.map((tree) => (
+                      <motion.tr
+                        key={tree.tree_id}
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="group hover:bg-stone-50 transition-colors text-sm"
+                      >
+                        <td className="px-6 py-4 font-mono text-xs text-stone-400">
+                          {tree.tree_id.slice(0, 8).toUpperCase()}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-bold text-stone-800">{tree.tree_type}</div>
+                          <div className="text-[10px] text-stone-400 font-bold uppercase tracking-tight">Status: Healthy</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2 text-stone-500">
+                            <MapPin size={14} className="text-stone-300" />
+                            <span className="font-medium">{tree.plots?.sector_name || 'Unassigned'}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={() => handleEdit(tree)}
+                              className="p-2 text-stone-200 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                            >
+                              <Edit2 size={16} />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(tree.tree_id)}
+                              className="p-2 text-stone-200 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-stone-100">
+              <AnimatePresence>
+                {filteredTrees.map((tree) => (
+                  <motion.div
+                    key={tree.tree_id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="p-4 flex flex-col gap-3"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-bold text-stone-800">{tree.tree_type}</div>
+                        <div className="text-[10px] font-mono text-stone-400 uppercase">#{tree.tree_id.slice(0, 8).toUpperCase()}</div>
+                      </div>
+                      <div className="flex gap-1">
+                        <button 
+                          onClick={() => handleEdit(tree)}
+                          className="p-2.5 text-stone-400 active:bg-emerald-50 active:text-emerald-600 rounded-xl border border-stone-100"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(tree.tree_id)}
+                          className="p-2.5 text-stone-400 active:bg-red-50 active:text-red-500 rounded-xl border border-stone-100"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs font-medium">
+                      <div className="flex items-center gap-1.5 text-stone-500 bg-stone-50 px-3 py-1.5 rounded-full border border-stone-100">
+                        <MapPin size={12} className="text-stone-300" />
+                        {tree.plots?.sector_name || 'Unassigned'}
+                      </div>
+                      <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-full">
+                        Healthy
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+            
+            {filteredTrees.length === 0 && !loading && (
+              <div className="py-20 text-center space-y-4 px-6">
+                <div className="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mx-auto text-stone-200">
+                  <TreePine size={32} />
+                </div>
+                <p className="text-stone-400 font-medium text-sm">No asset records found in this view.</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
