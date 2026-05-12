@@ -13,9 +13,16 @@ import {
   ChevronRight,
   Database,
   Info,
-  Leaf
+  Leaf,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+// Add type for PWA prompt
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 // Components
 import Dashboard from './components/Dashboard';
@@ -29,6 +36,36 @@ type View = 'dashboard' | 'plots' | 'trees' | 'species' | 'setup';
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [isConfigured, setIsConfigured] = useState(true);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    
+    // We've used the prompt, and can't use it again, so clear it
+    setDeferredPrompt(null);
+  };
 
   useEffect(() => {
     const checkConfig = () => {
@@ -123,9 +160,22 @@ export default function App() {
             </div>
             <h1 className="font-bold text-sm tracking-tight text-stone-900 uppercase">TreeTracker</h1>
           </div>
-          <h2 className="text-xs font-black text-stone-600 uppercase tracking-widest truncate max-w-[120px]">
-            {currentView === 'setup' ? 'Setup' : currentView}
-          </h2>
+          
+          <div className="flex items-center gap-3">
+            {deferredPrompt && (
+              <button 
+                onClick={handleInstallClick}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg shadow-stone-200 active:scale-95 transition-all"
+                aria-label="Install App to Homescreen"
+              >
+                <Download size={12} />
+                <span>Download</span>
+              </button>
+            )}
+            <h2 className="text-xs font-black text-stone-600 uppercase tracking-widest truncate max-w-[80px]">
+              {currentView === 'setup' ? 'Setup' : currentView}
+            </h2>
+          </div>
         </header>
 
         {/* Desktop Header */}
