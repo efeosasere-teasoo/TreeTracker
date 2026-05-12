@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { supabase, Plot } from '../lib/supabase';
+import { offlineManager } from '../lib/offline';
 import { 
   Plus, 
   Search, 
@@ -9,7 +10,10 @@ import {
   MoreVertical,
   Loader2,
   Trash2,
-  X
+  X,
+  WifiOff,
+  CloudLightning,
+  CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -19,8 +23,31 @@ export default function PlotList() {
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [pendingSyncIds, setPendingSyncIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const updatePendingIds = async () => {
+      const ids = await offlineManager.getPendingIds('plots');
+      setPendingSyncIds(ids);
+    };
+    updatePendingIds();
+    const interval = setInterval(updatePendingIds, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleStatus = () => setIsOffline(!navigator.onLine);
+    window.addEventListener('online', handleStatus);
+    window.addEventListener('offline', handleStatus);
+    return () => {
+      window.removeEventListener('online', handleStatus);
+      window.removeEventListener('offline', handleStatus);
+    };
+  }, []);
 
   // Form state
+  // ... (rest of form state)
   const [formData, setFormData] = useState({
     sector_name: '',
     latitude: '',
@@ -32,15 +59,28 @@ export default function PlotList() {
 
   const fetchPlots = async () => {
     try {
-      const { data, error } = await supabase
-        .from('plots')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      setPlots(data || []);
+      // 1. Load from cache first
+      const cached = await offlineManager.getCachedData('plots');
+      if (cached) {
+        setPlots(cached);
+        setLoading(false);
+      }
+
+      // 2. Fetch from network
+      if (navigator.onLine) {
+        const { data, error } = await supabase
+          .from('plots')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        if (data) {
+          setPlots(data);
+          await offlineManager.cacheData('plots', data);
+        }
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching plots:', error);
     } finally {
       setLoading(false);
     }
@@ -52,25 +92,27 @@ export default function PlotList() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log('Submitting plot form:', formData);
     setSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from('plots')
-        .insert([{
-          ...formData,
-          latitude: parseFloat(formData.latitude) || 0,
-          longitude: parseFloat(formData.longitude) || 0,
-          area_hectares: parseFloat(formData.area_hectares) || 0
-        }]);
+    
+    const newPlotId = crypto.randomUUID();
+    const newPlot: Plot = {
+      plot_id: newPlotId,
+      ...formData,
+      latitude: parseFloat(formData.latitude) || 0,
+      longitude: parseFloat(formData.longitude) || 0,
+      area_hectares: parseFloat(formData.area_hectares) || 0,
+    };
 
-      if (error) {
-        console.error('Supabase Error details:', error);
-        throw error;
-      }
+    try {
+      // Optimistic Update
+      const updatedPlots = [newPlot, ...plots];
+      setPlots(updatedPlots);
+      await offlineManager.cacheData('plots', updatedPlots);
+      
+      // Send to Sync Queue
+      await offlineManager.enqueue('plots', 'INSERT', newPlot);
       
       setShowForm(false);
-      fetchPlots();
       setFormData({
         sector_name: '',
         latitude: '',
@@ -79,10 +121,14 @@ export default function PlotList() {
         baseline_land_use: '',
         project_start_date: new Date().toISOString().split('T')[0]
       });
+      
+      // Re-fetch to ensure sync is reflected if online
+      if (navigator.onLine) {
+        setTimeout(fetchPlots, 500); 
+      }
     } catch (error: any) {
-      const msg = error.message || 'Unknown error';
-      alert(`Error creating plot: ${msg}\n\nCheck console for full technical details.`);
-      console.error('Full caught error:', error);
+      console.error('Submit error:', error);
+      alert('Local storage failed. Check disk space.');
     } finally {
       setSubmitting(false);
     }
@@ -91,10 +137,19 @@ export default function PlotList() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this plot and all its associated trees?')) return;
     try {
-      await supabase.from('plots').delete().eq('plot_id', id);
-      fetchPlots();
+      // Optimistic Delete
+      const updatedPlots = plots.filter(p => p.plot_id !== id);
+      setPlots(updatedPlots);
+      await offlineManager.cacheData('plots', updatedPlots);
+
+      // Enqueue Delete
+      await offlineManager.enqueue('plots', 'DELETE', id);
+      
+      if (navigator.onLine) {
+        setTimeout(fetchPlots, 500);
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Delete error:', error);
     }
   };
 
@@ -105,6 +160,16 @@ export default function PlotList() {
 
   return (
     <div className="space-y-6">
+      {isOffline && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center gap-3 text-amber-900 text-xs font-bold uppercase tracking-wider"
+        >
+          <WifiOff size={16} />
+          <span>Offline Mode: Data is being saved locally and will sync when internet returns.</span>
+        </motion.div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-2xl w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={18} />
@@ -143,7 +208,21 @@ export default function PlotList() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-base md:text-lg font-bold text-stone-900 tracking-tight leading-tight">{plot.sector_name}</h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-base md:text-lg font-bold text-stone-900 tracking-tight leading-tight">{plot.sector_name}</h3>
+                      {pendingSyncIds.has(plot.plot_id) && (
+                        <div className="flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-700 text-[9px] font-black uppercase tracking-tighter rounded border border-amber-100 animate-pulse">
+                          <CloudLightning size={10} />
+                          Pending
+                        </div>
+                      )}
+                      {!pendingSyncIds.has(plot.plot_id) && (
+                        <div className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-black uppercase tracking-tighter rounded border border-emerald-100">
+                          <CheckCircle2 size={10} />
+                          Synced
+                        </div>
+                      )}
+                    </div>
                     <p className="text-[10px] text-stone-600 font-bold uppercase tracking-widest mt-0.5">{plot.baseline_land_use}</p>
                   </div>
                   <button 

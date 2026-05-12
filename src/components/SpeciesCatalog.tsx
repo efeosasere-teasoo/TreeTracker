@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { supabase, Species } from '../lib/supabase';
+import { offlineManager } from '../lib/offline';
 import { 
   Plus, 
   Search, 
@@ -8,7 +9,10 @@ import {
   Trash2,
   X,
   Edit2,
-  Dna
+  Dna,
+  WifiOff,
+  CloudLightning,
+  CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -19,6 +23,28 @@ export default function SpeciesCatalog() {
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [editingSpecies, setEditingSpecies] = useState<Species | null>(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [pendingSyncIds, setPendingSyncIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const updatePendingIds = async () => {
+      const ids = await offlineManager.getPendingIds('species');
+      setPendingSyncIds(ids);
+    };
+    updatePendingIds();
+    const interval = setInterval(updatePendingIds, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleStatus = () => setIsOffline(!navigator.onLine);
+    window.addEventListener('online', handleStatus);
+    window.addEventListener('offline', handleStatus);
+    return () => {
+      window.removeEventListener('online', handleStatus);
+      window.removeEventListener('offline', handleStatus);
+    };
+  }, []);
 
   const [formData, setFormData] = useState({
     common_name: '',
@@ -27,15 +53,28 @@ export default function SpeciesCatalog() {
 
   const fetchSpecies = async () => {
     try {
-      const { data, error } = await supabase
-        .from('species')
-        .select('*')
-        .order('common_name', { ascending: true });
-      
-      if (error) throw error;
-      setSpecies(data || []);
+      // 1. Load from cache
+      const cached = await offlineManager.getCachedData('species');
+      if (cached) {
+        setSpecies(cached);
+        setLoading(false);
+      }
+
+      // 2. Fetch from network
+      if (navigator.onLine) {
+        const { data, error } = await supabase
+          .from('species')
+          .select('*')
+          .order('common_name', { ascending: true });
+        
+        if (error) throw error;
+        if (data) {
+          setSpecies(data);
+          await offlineManager.cacheData('species', data);
+        }
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching species:', error);
     } finally {
       setLoading(false);
     }
@@ -64,23 +103,32 @@ export default function SpeciesCatalog() {
     e.preventDefault();
     setSubmitting(true);
     try {
+      const speciesRecord: Species = {
+        ...formData,
+        species_id: editingSpecies ? editingSpecies.species_id : crypto.randomUUID()
+      };
+
+      // Optimistic Update
+      let updatedSpecies;
       if (editingSpecies) {
-        const { error } = await supabase
-          .from('species')
-          .update(formData)
-          .eq('species_id', editingSpecies.species_id);
-        if (error) throw error;
+        updatedSpecies = species.map(s => s.species_id === editingSpecies.species_id ? speciesRecord : s);
       } else {
-        const { error } = await supabase
-          .from('species')
-          .insert([formData]);
-        if (error) throw error;
+        updatedSpecies = [...species, speciesRecord].sort((a, b) => a.common_name.localeCompare(b.common_name));
       }
       
+      setSpecies(updatedSpecies);
+      await offlineManager.cacheData('species', updatedSpecies);
+
+      // Enqueue
+      await offlineManager.enqueue('species', editingSpecies ? 'UPDATE' : 'INSERT', speciesRecord);
+      
       setShowForm(false);
-      fetchSpecies();
+      if (navigator.onLine) {
+        setTimeout(fetchSpecies, 500);
+      }
     } catch (error: any) {
-      alert('Error saving species: ' + (error.message || 'Check connection'));
+      console.error('Submit error:', error);
+      alert('Local storage failed.');
     } finally {
       setSubmitting(false);
     }
@@ -89,10 +137,19 @@ export default function SpeciesCatalog() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure? This will not delete trees already planted but will remove it from the catalog.')) return;
     try {
-      await supabase.from('species').delete().eq('species_id', id);
-      fetchSpecies();
+      // Optimistic Delete
+      const updatedSpecies = species.filter(s => s.species_id !== id);
+      setSpecies(updatedSpecies);
+      await offlineManager.cacheData('species', updatedSpecies);
+
+      // Enqueue Delete
+      await offlineManager.enqueue('species', 'DELETE', id);
+      
+      if (navigator.onLine) {
+        setTimeout(fetchSpecies, 500);
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Delete error:', error);
     }
   };
 
@@ -103,6 +160,16 @@ export default function SpeciesCatalog() {
 
   return (
     <div className="space-y-6">
+      {isOffline && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center gap-3 text-amber-900 text-xs font-bold uppercase tracking-wider"
+        >
+          <WifiOff size={16} />
+          <span>Offline Mode: Species catalog changes will sync when online.</span>
+        </motion.div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={18} />
@@ -140,8 +207,17 @@ export default function SpeciesCatalog() {
                 className="bg-white p-5 md:p-6 rounded-2xl border border-stone-200 shadow-theme-sm group relative active:bg-stone-50 transition-colors"
               >
                 <div className="flex items-start justify-between mb-3 md:mb-2 text-stone-900">
-                  <div className="bg-emerald-100 text-emerald-800 p-2 rounded-lg border border-emerald-200">
+                  <div className="bg-emerald-100 text-emerald-800 p-2 rounded-lg border border-emerald-200 relative">
                     <Leaf size={20} />
+                    {pendingSyncIds.has(item.species_id) ? (
+                      <div className="absolute -top-1 -right-1 bg-amber-500 text-white rounded-full p-0.5 animate-pulse">
+                        <CloudLightning size={8} />
+                      </div>
+                    ) : (
+                      <div className="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full p-0.5">
+                        <CheckCircle2 size={8} />
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button 

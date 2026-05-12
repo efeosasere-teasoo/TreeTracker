@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { supabase, Plot, Tree, Species } from '../lib/supabase';
+import { offlineManager } from '../lib/offline';
 import { 
   Plus, 
   Search, 
@@ -12,7 +13,10 @@ import {
   MapPin,
   Info,
   Edit2,
-  ChevronDown
+  ChevronDown,
+  WifiOff,
+  CloudLightning,
+  CheckCircle2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -26,6 +30,28 @@ export default function TreeList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPlot, setFilterPlot] = useState<string>('all');
   const [editingTree, setEditingTree] = useState<Tree | null>(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [pendingSyncIds, setPendingSyncIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const updatePendingIds = async () => {
+      const ids = await offlineManager.getPendingIds('trees');
+      setPendingSyncIds(ids);
+    };
+    updatePendingIds();
+    const interval = setInterval(updatePendingIds, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const handleStatus = () => setIsOffline(!navigator.onLine);
+    window.addEventListener('online', handleStatus);
+    window.addEventListener('offline', handleStatus);
+    return () => {
+      window.removeEventListener('online', handleStatus);
+      window.removeEventListener('offline', handleStatus);
+    };
+  }, []);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -36,28 +62,55 @@ export default function TreeList() {
 
   const fetchData = async () => {
     try {
-      const [
-        { data: treeData }, 
-        { data: plotData },
-        { data: speciesData }
-      ] = await Promise.all([
-        supabase
-          .from('trees')
-          .select('*, plots(*)')
-          .order('created_at', { ascending: false }),
-        supabase
-          .from('plots')
-          .select('*'),
-        supabase
-          .from('species')
-          .select('*').order('common_name')
+      // 1. Load from cache
+      const [cachedTrees, cachedPlots, cachedSpecies] = await Promise.all([
+        offlineManager.getCachedData('trees'),
+        offlineManager.getCachedData('plots'),
+        offlineManager.getCachedData('species')
       ]);
+
+      if (cachedTrees) setTrees(cachedTrees);
+      if (cachedPlots) setPlots(cachedPlots);
+      if (cachedSpecies) setSpecies(cachedSpecies);
       
-      setTrees(treeData || []);
-      setPlots(plotData || []);
-      setSpecies(speciesData || []);
+      if (cachedTrees || cachedPlots || cachedSpecies) {
+        setLoading(false);
+      }
+
+      // 2. Fetch from network
+      if (navigator.onLine) {
+        const [
+          { data: treeData }, 
+          { data: plotData },
+          { data: speciesData }
+        ] = await Promise.all([
+          supabase
+            .from('trees')
+            .select('*, plots(*)')
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('plots')
+            .select('*'),
+          supabase
+            .from('species')
+            .select('*').order('common_name')
+        ]);
+        
+        if (treeData) {
+          setTrees(treeData);
+          await offlineManager.cacheData('trees', treeData);
+        }
+        if (plotData) {
+          setPlots(plotData);
+          await offlineManager.cacheData('plots', plotData);
+        }
+        if (speciesData) {
+          setSpecies(speciesData);
+          await offlineManager.cacheData('species', speciesData);
+        }
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -89,27 +142,35 @@ export default function TreeList() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    console.log('Submitting tree form:', formData);
     setSubmitting(true);
     try {
+      const treeRecord = {
+        ...formData,
+        tree_id: editingTree ? editingTree.tree_id : crypto.randomUUID()
+      };
+
+      // Optimistic Update
+      let updatedTrees;
       if (editingTree) {
-        const { error } = await supabase
-          .from('trees')
-          .update(formData)
-          .eq('tree_id', editingTree.tree_id);
-        if (error) throw error;
+        updatedTrees = trees.map(t => t.tree_id === editingTree.tree_id ? { ...t, ...treeRecord } : t);
       } else {
-        const { error } = await supabase
-          .from('trees')
-          .insert([formData]);
-        if (error) throw error;
+        const plot = plots.find(p => p.plot_id === formData.plot_id);
+        updatedTrees = [{ ...treeRecord, plots: plot as Plot } as any, ...trees];
       }
       
+      setTrees(updatedTrees);
+      await offlineManager.cacheData('trees', updatedTrees);
+
+      // Enqueue
+      await offlineManager.enqueue('trees', editingTree ? 'UPDATE' : 'INSERT', treeRecord);
+      
       setShowForm(false);
-      fetchData();
+      if (navigator.onLine) {
+        setTimeout(fetchData, 500);
+      }
     } catch (error: any) {
-      alert('Error saving record: ' + (error.message || 'Check your connection.'));
-      console.error(error);
+      console.error('Submit error:', error);
+      alert('Local storage failed.');
     } finally {
       setSubmitting(false);
     }
@@ -118,10 +179,19 @@ export default function TreeList() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this tree record?')) return;
     try {
-      await supabase.from('trees').delete().eq('tree_id', id);
-      fetchData();
+      // Optimistic Delete
+      const updatedTrees = trees.filter(t => t.tree_id !== id);
+      setTrees(updatedTrees);
+      await offlineManager.cacheData('trees', updatedTrees);
+
+      // Enqueue Delete
+      await offlineManager.enqueue('trees', 'DELETE', id);
+      
+      if (navigator.onLine) {
+        setTimeout(fetchData, 500);
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Delete error:', error);
     }
   };
 
@@ -133,6 +203,16 @@ export default function TreeList() {
 
   return (
     <div className="space-y-6">
+      {isOffline && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex items-center gap-3 text-amber-900 text-xs font-bold uppercase tracking-wider"
+        >
+          <WifiOff size={16} />
+          <span>Offline Mode: Sync pending for tree asset records.</span>
+        </motion.div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-1 gap-4 max-w-2xl">
           <div className="relative flex-1">
@@ -205,7 +285,20 @@ export default function TreeList() {
                           {tree.tree_id.slice(0, 8).toUpperCase()}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="font-bold">{tree.tree_type}</div>
+                          <div className="flex items-center gap-2">
+                             <div className="font-bold">{tree.tree_type}</div>
+                             {pendingSyncIds.has(tree.tree_id) ? (
+                               <div className="text-[8px] bg-amber-50 text-amber-700 px-1 py-0.5 rounded border border-amber-100 font-black uppercase flex items-center gap-1">
+                                 <CloudLightning size={8} />
+                                 Pending
+                               </div>
+                             ) : (
+                               <div className="text-[8px] bg-emerald-50 text-emerald-700 px-1 py-0.5 rounded border border-emerald-100 font-black uppercase flex items-center gap-1">
+                                 <CheckCircle2 size={8} />
+                                 Synced
+                               </div>
+                             )}
+                          </div>
                           <div className="text-[10px] text-stone-600 font-black uppercase tracking-tight">Status: Healthy</div>
                         </td>
                         <td className="px-6 py-4">
@@ -252,7 +345,18 @@ export default function TreeList() {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-bold text-stone-900">{tree.tree_type}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-bold text-stone-900">{tree.tree_type}</div>
+                          {pendingSyncIds.has(tree.tree_id) ? (
+                             <div className="text-[8px] bg-amber-50 text-amber-700 px-1 py-0.5 rounded border border-amber-100 font-black animate-pulse uppercase">
+                               <CloudLightning size={8} />
+                             </div>
+                          ) : (
+                             <div className="text-[8px] bg-emerald-50 text-emerald-700 px-1 py-0.5 rounded border border-emerald-100 font-black uppercase">
+                               <CheckCircle2 size={8} />
+                             </div>
+                          )}
+                        </div>
                         <div className="text-[10px] font-mono text-stone-600 font-bold uppercase">#{tree.tree_id.slice(0, 8).toUpperCase()}</div>
                       </div>
                       <div className="flex gap-1">

@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
+import { offlineManager } from './lib/offline';
 import { 
   TreePine, 
   Map as MapIcon, 
@@ -14,7 +15,10 @@ import {
   Database,
   Info,
   Leaf,
-  Download
+  Download,
+  CloudLightning,
+  CheckCircle2,
+  WifiOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -37,6 +41,41 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [isConfigured, setIsConfigured] = useState(true);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [pendingSyncCount, setPendingSyncCount] = useState(0);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    const updateSyncCount = async () => {
+      const count = await offlineManager.getQueueSize();
+      setPendingSyncCount(count);
+    };
+
+    updateSyncCount();
+    const interval = setInterval(updateSyncCount, 3000); 
+    
+    const handleStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener('online', handleStatus);
+    window.addEventListener('offline', handleStatus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('online', handleStatus);
+      window.removeEventListener('offline', handleStatus);
+    };
+  }, []);
+
+  const handleManualSync = async () => {
+    if (!isOnline || isSyncing) return;
+    setIsSyncing(true);
+    try {
+      await offlineManager.forceSync();
+      const count = await offlineManager.getQueueSize();
+      setPendingSyncCount(count);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -137,14 +176,61 @@ export default function App() {
           )}
         </div>
 
-        <div className="p-6 border-t border-stone-200 text-stone-900">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-[10px] font-bold text-stone-700">
-              EO
+        <div className="p-6 border-t border-stone-200 text-stone-900 bg-stone-50/50">
+          <div className="space-y-4">
+            <div className={`p-3 rounded-xl border flex flex-col gap-2 transition-all ${
+              pendingSyncCount > 0 
+                ? 'bg-amber-50 border-amber-100' 
+                : 'bg-emerald-50 border-emerald-100'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-stone-600">Sync Status</span>
+                {isOnline ? (
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-700">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Online
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-red-700">
+                    <WifiOff size={10} />
+                    Offline
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                {pendingSyncCount > 0 ? (
+                  <CloudLightning size={14} className={`text-amber-600 ${isSyncing ? 'animate-spin' : 'animate-bounce'}`} />
+                ) : (
+                  <CheckCircle2 size={14} className="text-emerald-700" />
+                )}
+                <div className="flex-1">
+                  <span className="text-xs font-bold block">
+                    {pendingSyncCount > 0 
+                      ? `${pendingSyncCount} changes pending` 
+                      : 'All data synced'}
+                  </span>
+                  {pendingSyncCount > 0 && isOnline && (
+                    <button 
+                      onClick={handleManualSync}
+                      disabled={isSyncing}
+                      className="text-[9px] font-black underline uppercase text-amber-800 hover:text-amber-900 disabled:opacity-50"
+                    >
+                      {isSyncing ? 'Syncing...' : 'Push Now'}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-bold truncate">Efe Osasere</p>
-              <p className="text-[10px] text-stone-600 font-bold uppercase tracking-tight truncate">Project Admin</p>
+
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-[10px] font-bold text-stone-700">
+                EO
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <p className="text-sm font-bold truncate">Efe Osasere</p>
+                <p className="text-[10px] text-stone-600 font-bold uppercase tracking-tight truncate">Project Admin</p>
+              </div>
             </div>
           </div>
         </div>
