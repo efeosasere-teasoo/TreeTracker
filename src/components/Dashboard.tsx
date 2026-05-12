@@ -100,16 +100,16 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
             onClick={() => onNavigate(card.view)}
             className="bg-white p-4 md:p-5 rounded-xl border border-stone-200 shadow-theme-sm cursor-pointer hover:border-emerald-200 active:bg-emerald-50 transition-all flex flex-col justify-between"
           >
-            <div className="text-stone-400 text-[10px] font-bold uppercase mb-1 tracking-wider">{card.title}</div>
+            <div className="text-stone-600 text-[10px] font-bold uppercase mb-1 tracking-wider">{card.title}</div>
             <div className="flex items-baseline gap-1">
-              <span className="text-xl md:text-2xl font-bold text-stone-800">{card.value}</span>
+              <span className="text-xl md:text-2xl font-bold text-stone-900">{card.value}</span>
               <span className={`text-[10px] md:text-xs font-semibold ${card.accent} truncate`}>{card.unit}</span>
             </div>
           </motion.div>
         ))}
         <div className="bg-white p-4 md:p-5 rounded-xl border border-stone-200 shadow-theme-sm flex flex-col justify-between">
-          <div className="text-stone-400 text-[10px] font-bold uppercase mb-1 tracking-wider">Survivability</div>
-          <div className="text-xl md:text-2xl font-bold text-stone-800">94.2%</div>
+          <div className="text-stone-600 text-[10px] font-bold uppercase mb-1 tracking-wider">Survivability</div>
+          <div className="text-xl md:text-2xl font-bold text-stone-900">94.2%</div>
         </div>
       </section>
 
@@ -117,19 +117,19 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
         {/* Table View Placeholder / Mini List */}
         <div className="flex-[2] bg-white rounded-2xl border border-stone-200 shadow-theme-sm flex flex-col overflow-hidden min-h-[300px]">
           <div className="px-5 py-4 border-b border-stone-100 flex items-center justify-between">
-            <h2 className="font-bold text-stone-700 text-sm md:text-base">Recent Activity</h2>
+            <h2 className="font-bold text-stone-800 text-sm md:text-base">Recent Activity</h2>
             <div className="hidden md:flex space-x-2 text-[10px] font-bold uppercase tracking-tight">
-              <span className="px-2 py-1 bg-stone-100 rounded text-stone-500">Filter: Recent</span>
-              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded">Status: Healthy</span>
+              <span className="px-2 py-1 bg-stone-100 rounded text-stone-700">Filter: Recent</span>
+              <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded font-black">Status: Healthy</span>
             </div>
           </div>
           <div className="p-8 flex flex-col items-center justify-center text-center space-y-4 flex-1">
-             <div className="w-12 h-12 md:w-16 md:h-16 bg-stone-50 rounded-full flex items-center justify-center text-stone-200">
+             <div className="w-12 h-12 md:w-16 md:h-16 bg-stone-50 rounded-full flex items-center justify-center text-stone-400">
                <TrendingUp size={24} className="md:w-8 md:h-8" />
              </div>
              <div className="max-w-[240px] md:max-w-xs">
-               <h4 className="text-stone-800 font-bold text-sm md:text-base">Reforestation Trends</h4>
-               <p className="text-stone-400 text-xs md:text-sm mt-1">Detailed growth analytics and carbon reports will appear here as data is collected.</p>
+               <h3 className="text-stone-900 font-black text-sm md:text-base uppercase tracking-tight">Reforestation Trends</h3>
+               <p className="text-stone-600 text-xs md:text-sm mt-1">Detailed growth analytics and carbon reports will appear here as data is collected.</p>
              </div>
           </div>
         </div>
@@ -148,16 +148,16 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           
           <div className="bg-white border border-stone-200 rounded-2xl p-5 md:p-6 flex flex-col justify-between space-y-4">
              <div>
-               <div className="text-stone-400 text-[10px] font-bold uppercase mb-3 tracking-widest">Project Milestone</div>
+               <div className="text-stone-600 text-[10px] font-bold uppercase mb-3 tracking-widest">Project Milestone</div>
                <div className="flex items-start space-x-3">
-                 <div className="w-1 h-10 bg-emerald-500 rounded-full shrink-0"></div>
+                 <div className="w-1 h-10 bg-emerald-600 rounded-full shrink-0"></div>
                  <div>
-                   <div className="text-sm font-bold text-stone-800">Baseline Verified</div>
-                   <div className="text-xs text-stone-500 mt-1 leading-relaxed">Land area and secondary data verified for project eligibility.</div>
+                   <div className="text-sm font-bold text-stone-900">Baseline Verified</div>
+                   <div className="text-xs text-stone-600 mt-1 font-medium leading-relaxed">Land area and secondary data verified for project eligibility.</div>
                  </div>
                </div>
              </div>
-             <div className="text-[10px] text-stone-300 font-bold uppercase tracking-tight">Updated 14 May 2024</div>
+             <div className="text-[10px] text-stone-500 font-bold uppercase tracking-tight">Updated 14 May 2024</div>
           </div>
         </div>
       </div>

@@ -107,11 +107,11 @@ export default function PlotList() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-2xl w-full">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={18} />
           <input
             type="text"
             placeholder="Search sectors or land use..."
-            className="w-full pl-12 pr-4 py-3 bg-white border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 outline-none transition-all text-sm"
+            className="w-full pl-12 pr-4 py-3 bg-white border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 outline-none transition-all text-sm text-stone-900 placeholder:text-stone-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -143,42 +143,43 @@ export default function PlotList() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-base md:text-lg font-bold text-stone-800 tracking-tight leading-tight">{plot.sector_name}</h3>
-                    <p className="text-[10px] text-stone-400 font-bold uppercase tracking-widest mt-0.5">{plot.baseline_land_use}</p>
+                    <h3 className="text-base md:text-lg font-bold text-stone-900 tracking-tight leading-tight">{plot.sector_name}</h3>
+                    <p className="text-[10px] text-stone-600 font-bold uppercase tracking-widest mt-0.5">{plot.baseline_land_use}</p>
                   </div>
                   <button 
                     onClick={() => handleDelete(plot.plot_id)}
-                    className="p-2 text-stone-300 hover:text-red-500 active:text-red-500 active:bg-red-50 rounded-lg transition-all md:opacity-0 md:group-hover:opacity-100"
+                    className="p-2 text-stone-400 hover:text-red-600 active:text-red-700 active:bg-red-50 rounded-lg transition-all md:opacity-0 md:group-hover:opacity-100"
+                    aria-label={`Delete ${plot.sector_name}`}
                   >
                     <Trash2 size={16} />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 py-4 border-y border-stone-50 my-2">
+                <div className="grid grid-cols-2 gap-4 py-4 border-y border-stone-100 my-2">
                   <div className="space-y-1">
-                    <p className="text-[10px] text-stone-400 uppercase font-bold tracking-widest">COORDINATES</p>
-                    <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-stone-600">
-                      <MapPin size={12} className="text-emerald-600 shrink-0" />
+                    <p className="text-[10px] text-stone-600 uppercase font-bold tracking-widest">COORDINATES</p>
+                    <div className="flex items-center gap-1.5 text-[11px] font-mono font-medium text-stone-700">
+                      < MapPin size={12} className="text-emerald-700 shrink-0" />
                       <span className="truncate">{plot.latitude.toFixed(3)}, {plot.longitude.toFixed(3)}</span>
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] text-stone-400 uppercase font-bold tracking-widest">TOTAL AREA</p>
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-stone-700">
-                      <Maximize2 size={12} className="text-blue-500 shrink-0" />
+                    <p className="text-[10px] text-stone-600 uppercase font-bold tracking-widest">TOTAL AREA</p>
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-stone-900">
+                      <Maximize2 size={12} className="text-blue-700 shrink-0" />
                       {plot.area_hectares} HA
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between mt-4">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-stone-50 rounded-lg border border-stone-100 max-w-[60%]">
-                    <Calendar size={12} className="text-stone-400 shrink-0" />
-                    <span className="text-[10px] font-bold text-stone-500 uppercase tracking-tight truncate">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-stone-50 rounded-lg border border-stone-200 max-w-[60%]">
+                    <Calendar size={12} className="text-stone-600 shrink-0" />
+                    <span className="text-[10px] font-bold text-stone-700 uppercase tracking-tight truncate">
                       {new Date(plot.project_start_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' })}
                     </span>
                   </div>
-                  <div className="text-[9px] font-mono text-stone-300 uppercase shrink-0">
+                  <div className="text-[9px] font-mono text-stone-500 font-bold uppercase shrink-0">
                     ID: {plot.plot_id.slice(0, 8)}
                   </div>
                 </div>
@@ -227,12 +228,12 @@ export default function PlotList() {
 
               <form onSubmit={handleSubmit} className="p-8 flex-1 overflow-auto space-y-6">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Sector Name</label>
+                  <label className="text-[10px] font-bold text-stone-700 uppercase tracking-widest pl-1">Sector Name</label>
                   <input
                     required
                     type="text"
                     placeholder="e.g. Amazon Basin Alpha"
-                    className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-emerald-600 rounded-lg transition-all outline-none text-sm font-medium"
+                    className="w-full px-4 py-3 bg-white border border-stone-300 focus:border-emerald-700 rounded-lg transition-all outline-none text-sm font-medium text-stone-900"
                     value={formData.sector_name}
                     onChange={(e) => setFormData({ ...formData, sector_name: e.target.value })}
                   />
@@ -240,25 +241,25 @@ export default function PlotList() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Latitude</label>
+                    <label className="text-[10px] font-bold text-stone-700 uppercase tracking-widest pl-1">Latitude</label>
                     <input
                       required
                       type="number"
                       step="any"
                       placeholder="GPS Lat"
-                      className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-emerald-600 rounded-lg transition-all outline-none text-sm font-mono"
+                      className="w-full px-4 py-3 bg-white border border-stone-300 focus:border-emerald-700 rounded-lg transition-all outline-none text-sm font-mono text-stone-900"
                       value={formData.latitude}
                       onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Longitude</label>
+                    <label className="text-[10px] font-bold text-stone-700 uppercase tracking-widest pl-1">Longitude</label>
                     <input
                       required
                       type="number"
                       step="any"
                       placeholder="GPS Long"
-                      className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-emerald-600 rounded-lg transition-all outline-none text-sm font-mono"
+                      className="w-full px-4 py-3 bg-white border border-stone-300 focus:border-emerald-700 rounded-lg transition-all outline-none text-sm font-mono text-stone-900"
                       value={formData.longitude}
                       onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
                     />
@@ -266,35 +267,35 @@ export default function PlotList() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Area (Hectares)</label>
+                  <label className="text-[10px] font-bold text-stone-700 uppercase tracking-widest pl-1">Area (Hectares)</label>
                   <input
                     required
                     type="number"
                     step="0.1"
                     placeholder="Size"
-                    className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-emerald-600 rounded-lg transition-all outline-none text-sm font-medium"
+                    className="w-full px-4 py-3 bg-white border border-stone-300 focus:border-emerald-700 rounded-lg transition-all outline-none text-sm font-medium text-stone-900"
                     value={formData.area_hectares}
                     onChange={(e) => setFormData({ ...formData, area_hectares: e.target.value })}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Baseline Land Use</label>
+                  <label className="text-[10px] font-bold text-stone-700 uppercase tracking-widest pl-1">Baseline Land Use</label>
                   <input
                     type="text"
                     placeholder="Primary state"
-                    className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-emerald-600 rounded-lg transition-all outline-none text-sm font-medium"
+                    className="w-full px-4 py-3 bg-white border border-stone-300 focus:border-emerald-700 rounded-lg transition-all outline-none text-sm font-medium text-stone-900"
                     value={formData.baseline_land_use}
                     onChange={(e) => setFormData({ ...formData, baseline_land_use: e.target.value })}
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Project Start Date</label>
+                  <label className="text-[10px] font-bold text-stone-700 uppercase tracking-widest pl-1">Project Start Date</label>
                   <input
                     required
                     type="date"
-                    className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-emerald-600 rounded-lg transition-all outline-none text-sm font-medium"
+                    className="w-full px-4 py-3 bg-white border border-stone-300 focus:border-emerald-700 rounded-lg transition-all outline-none text-sm font-medium text-stone-900"
                     value={formData.project_start_date}
                     onChange={(e) => setFormData({ ...formData, project_start_date: e.target.value })}
                   />

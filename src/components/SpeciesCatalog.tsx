@@ -105,11 +105,11 @@ export default function SpeciesCatalog() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={18} />
           <input
             type="text"
             placeholder="Search catalog..."
-            className="w-full pl-12 pr-4 py-3 bg-white border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 outline-none transition-all text-sm"
+            className="w-full pl-12 pr-4 py-3 bg-white border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 outline-none transition-all text-sm text-stone-900 placeholder:text-stone-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -139,22 +139,30 @@ export default function SpeciesCatalog() {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="bg-white p-5 md:p-6 rounded-2xl border border-stone-200 shadow-theme-sm group relative active:bg-stone-50 transition-colors"
               >
-                <div className="flex items-start justify-between mb-3 md:mb-2">
-                  <div className="bg-emerald-50 text-emerald-600 p-2 rounded-lg">
+                <div className="flex items-start justify-between mb-3 md:mb-2 text-stone-900">
+                  <div className="bg-emerald-100 text-emerald-800 p-2 rounded-lg border border-emerald-200">
                     <Leaf size={20} />
                   </div>
                   <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => handleEdit(item)} className="p-2 text-stone-400 hover:text-emerald-600 active:bg-emerald-100 rounded-lg">
+                    <button 
+                      onClick={() => handleEdit(item)} 
+                      className="p-2 text-stone-500 hover:text-emerald-700 active:bg-emerald-100 rounded-lg"
+                      aria-label={`Edit ${item.common_name}`}
+                    >
                       <Edit2 size={16} />
                     </button>
-                    <button onClick={() => handleDelete(item.species_id)} className="p-2 text-stone-400 hover:text-red-500 active:bg-red-100 rounded-lg">
+                    <button 
+                      onClick={() => handleDelete(item.species_id)} 
+                      className="p-2 text-stone-500 hover:text-red-600 active:bg-red-100 rounded-lg"
+                      aria-label={`Delete ${item.common_name}`}
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
-                <h3 className="font-bold text-stone-800 text-base md:text-lg leading-tight">{item.common_name}</h3>
-                <div className="flex items-center gap-2 text-stone-400 mt-2 md:mt-1 italic text-xs md:text-sm">
-                  <Dna size={12} className="shrink-0" />
+                <h3 className="font-black text-stone-900 text-base md:text-lg leading-tight uppercase tracking-tight">{item.common_name}</h3>
+                <div className="flex items-center gap-2 text-stone-700 mt-2 md:mt-1 italic text-xs md:text-sm font-medium">
+                  <Dna size={12} className="shrink-0 text-emerald-700" />
                   {item.scientific_name}
                 </div>
               </motion.div>
@@ -191,23 +199,23 @@ export default function SpeciesCatalog() {
 
               <form onSubmit={handleSubmit} className="p-8 space-y-6">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Common Name</label>
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest pl-1">Common Name</label>
                   <input
                     required
                     type="text"
                     placeholder="e.g. African Mahogany"
-                    className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg outline-none text-sm font-medium focus:border-emerald-600 transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-stone-300 rounded-lg outline-none text-sm font-bold text-stone-900 focus:border-emerald-700 transition-colors"
                     value={formData.common_name}
                     onChange={(e) => setFormData({ ...formData, common_name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Scientific Name</label>
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest pl-1">Scientific Name</label>
                   <input
                     required
                     type="text"
                     placeholder="e.g. Khaya senegalensis"
-                    className="w-full px-4 py-3 bg-white border border-stone-200 rounded-lg outline-none text-sm font-medium focus:border-emerald-600 transition-colors"
+                    className="w-full px-4 py-3 bg-white border border-stone-300 rounded-lg outline-none text-sm font-bold text-stone-900 focus:border-emerald-700 transition-colors"
                     value={formData.scientific_name}
                     onChange={(e) => setFormData({ ...formData, scientific_name: e.target.value })}
                   />

@@ -55,15 +55,15 @@ export default function App() {
       {/* Sidebar - Desktop Only */}
       <aside className="hidden md:flex w-64 lg:w-72 bg-white border-r border-stone-200 flex-col shrink-0">
         <div className="h-16 px-6 lg:px-8 flex items-center gap-3 border-b border-stone-200">
-          <div className="bg-emerald-600 w-8 h-8 rounded flex items-center justify-center text-white shadow-sm">
+          <div className="bg-emerald-700 w-8 h-8 rounded flex items-center justify-center text-white shadow-sm">
             <TreePine size={20} />
           </div>
-          <h1 className="font-bold text-lg tracking-tight text-emerald-900 uppercase">TreeTracker</h1>
+          <h1 className="font-bold text-lg tracking-tight text-stone-900 uppercase">TreeTracker</h1>
         </div>
 
         <div className="p-6 flex-1 flex flex-col space-y-6">
           <nav className="space-y-1">
-            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-400 block mb-3 pl-2">Management</label>
+            <label className="text-[10px] font-bold uppercase tracking-widest text-stone-600 block mb-3 pl-2">Management</label>
             {menuItems.map((item) => (
               <button
                 key={item.id}
@@ -72,41 +72,42 @@ export default function App() {
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 group ${
                   currentView === item.id
                     ? 'bg-emerald-50 text-emerald-900 border border-emerald-100 font-semibold shadow-sm'
-                    : 'text-stone-500 hover:bg-stone-50'
+                    : 'text-stone-600 hover:bg-stone-50'
                 }`}
+                aria-current={currentView === item.id ? 'page' : undefined}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon size={18} className={currentView === item.id ? 'text-emerald-700' : 'text-stone-400'} />
+                  <item.icon size={18} className={currentView === item.id ? 'text-emerald-700' : 'text-stone-500 group-hover:text-stone-700'} />
                   <span className="text-sm">{item.label}</span>
                 </div>
                 {currentView === item.id && (
-                  <motion.div layoutId="active-indicator" className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <motion.div layoutId="active-indicator" className="w-1.5 h-1.5 rounded-full bg-emerald-700" />
                 )}
               </button>
             ))}
           </nav>
 
           {!isConfigured && (
-            <div className="mt-auto p-4 bg-amber-50 border border-amber-100 rounded-xl">
+            <div className="mt-auto p-4 bg-amber-50 border border-amber-200 rounded-xl">
               <button 
                 onClick={() => setCurrentView('setup')}
-                className="flex items-center gap-2 text-amber-700 text-xs font-bold uppercase tracking-wider"
+                className="flex items-center gap-2 text-amber-900 text-xs font-bold uppercase tracking-wider"
               >
                 <Database size={14} />
-                Setup Required
+                <span>Fix Connection</span>
               </button>
             </div>
           )}
         </div>
 
-        <div className="p-6 border-t border-stone-200">
+        <div className="p-6 border-t border-stone-200 text-stone-900">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-[10px] font-bold text-stone-600">
+            <div className="w-8 h-8 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-[10px] font-bold text-stone-700">
               EO
             </div>
             <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-bold text-stone-800 truncate">Efe Osasere</p>
-              <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight truncate">Project Admin</p>
+              <p className="text-sm font-bold truncate">Efe Osasere</p>
+              <p className="text-[10px] text-stone-600 font-bold uppercase tracking-tight truncate">Project Admin</p>
             </div>
           </div>
         </div>
@@ -117,28 +118,28 @@ export default function App() {
         {/* Mobile Header */}
         <header className="md:hidden h-14 bg-white border-b border-stone-200 px-4 flex items-center justify-between shrink-0 sticky top-0 z-50">
           <div className="flex items-center gap-2">
-            <div className="bg-emerald-600 w-6 h-6 rounded flex items-center justify-center text-white">
+            <div className="bg-emerald-700 w-6 h-6 rounded flex items-center justify-center text-white">
               <TreePine size={14} />
             </div>
-            <h1 className="font-bold text-sm tracking-tight text-stone-800 uppercase">TreeTracker</h1>
+            <h1 className="font-bold text-sm tracking-tight text-stone-900 uppercase">TreeTracker</h1>
           </div>
-          <h2 className="text-xs font-bold text-stone-400 uppercase tracking-widest truncate max-w-[120px]">
-            {currentView}
+          <h2 className="text-xs font-black text-stone-600 uppercase tracking-widest truncate max-w-[120px]">
+            {currentView === 'setup' ? 'Setup' : currentView}
           </h2>
         </header>
 
         {/* Desktop Header */}
-        <header className="hidden md:flex h-16 bg-white border-b border-stone-200 px-8 items-center justify-between shrink-0 shadow-sm">
-          <h2 className="text-lg font-bold text-stone-800 tracking-tight capitalize">
+        <header className="hidden md:flex h-16 bg-white border-b border-stone-200 px-8 items-center justify-between shrink-0 shadow-sm text-stone-900">
+          <h2 className="text-lg font-bold tracking-tight capitalize">
             {currentView === 'setup' ? 'Configuration' : currentView}
           </h2>
           <div className="flex items-center gap-6">
-            <div className="flex gap-4 text-xs font-bold text-stone-400 uppercase tracking-widest border-r border-stone-200 pr-6">
-              <span className="text-emerald-700 border-b-2 border-emerald-700 pb-1">Primary</span>
-              <span className="hover:text-stone-600 cursor-pointer transition-colors">Regional</span>
-              <span className="hover:text-stone-600 cursor-pointer transition-colors">Global</span>
-            </div>
-            <button className="p-2 text-stone-300 hover:text-stone-500 transition-colors">
+            <nav className="flex gap-4 text-xs font-bold text-stone-600 uppercase tracking-widest border-r border-stone-200 pr-6" aria-label="Region selection">
+              <span className="text-emerald-800 border-b-2 border-emerald-800 pb-1">Primary</span>
+              <span className="hover:text-stone-900 cursor-pointer transition-colors">Regional</span>
+              <span className="hover:text-stone-900 cursor-pointer transition-colors">Global</span>
+            </nav>
+            <button className="p-2 text-stone-500 hover:text-stone-700 transition-colors" aria-label="More Info">
               <Info size={20} />
             </button>
           </div>
@@ -174,16 +175,18 @@ export default function App() {
               id={`nav-mobile-${item.id}`}
               onClick={() => setCurrentView(item.id as View)}
               className="flex flex-col items-center gap-1 min-w-[64px] transition-all"
+              aria-label={item.label}
+              aria-current={currentView === item.id ? 'page' : undefined}
             >
               <div className={`p-2 rounded-xl transition-all ${
                 currentView === item.id 
-                  ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-200' 
-                  : 'text-stone-400'
+                  ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-200' 
+                  : 'text-stone-500'
               }`}>
                 <item.icon size={20} />
               </div>
               <span className={`text-[10px] font-bold uppercase tracking-tighter ${
-                currentView === item.id ? 'text-emerald-700' : 'text-stone-400'
+                currentView === item.id ? 'text-emerald-800' : 'text-stone-600'
               }`}>
                 {item.label === 'Database Setup' ? 'Setup' : item.label}
               </span>

@@ -136,19 +136,19 @@ export default function TreeList() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-1 gap-4 max-w-2xl">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={18} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={18} />
             <input
               type="text"
               placeholder="Search tree types..."
-              className="w-full pl-12 pr-4 py-3 bg-white border border-stone-200 rounded-lg focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 outline-none transition-all text-sm"
+              className="w-full pl-12 pr-4 py-3 bg-white border border-stone-300 rounded-lg focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 outline-none transition-all text-sm text-stone-900 placeholder:text-stone-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <div className="relative w-48">
-            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-300" size={16} />
+            <Filter className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500" size={16} />
             <select
-              className="w-full pl-10 pr-4 py-3 bg-white border border-stone-200 rounded-lg appearance-none focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 outline-none transition-all text-sm font-medium text-stone-600"
+              className="w-full pl-10 pr-4 py-3 bg-white border border-stone-300 rounded-lg appearance-none focus:ring-2 focus:ring-emerald-600/10 focus:border-emerald-600 outline-none transition-all text-sm font-bold text-stone-700"
               value={filterPlot}
               onChange={(e) => setFilterPlot(e.target.value)}
             >
@@ -182,7 +182,7 @@ export default function TreeList() {
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="bg-stone-50 border-b border-stone-100 text-stone-400 text-[10px] uppercase font-bold tracking-widest">
+                <thead className="bg-stone-50 border-b border-stone-200 text-stone-600 text-[10px] uppercase font-black tracking-widest">
                   <tr>
                     <th className="px-6 py-4">Tree Asset ID</th>
                     <th className="px-6 py-4">Species</th>
@@ -190,7 +190,7 @@ export default function TreeList() {
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-stone-50">
+                <tbody className="divide-y divide-stone-100 text-stone-900">
                   <AnimatePresence>
                     {filteredTrees.map((tree) => (
                       <motion.tr
@@ -201,30 +201,32 @@ export default function TreeList() {
                         exit={{ opacity: 0 }}
                         className="group hover:bg-stone-50 transition-colors text-sm"
                       >
-                        <td className="px-6 py-4 font-mono text-xs text-stone-400">
+                        <td className="px-6 py-4 font-mono text-xs text-stone-600 font-bold">
                           {tree.tree_id.slice(0, 8).toUpperCase()}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="font-bold text-stone-800">{tree.tree_type}</div>
-                          <div className="text-[10px] text-stone-400 font-bold uppercase tracking-tight">Status: Healthy</div>
+                          <div className="font-bold">{tree.tree_type}</div>
+                          <div className="text-[10px] text-stone-600 font-black uppercase tracking-tight">Status: Healthy</div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-2 text-stone-500">
-                            <MapPin size={14} className="text-stone-300" />
-                            <span className="font-medium">{tree.plots?.sector_name || 'Unassigned'}</span>
+                          <div className="flex items-center gap-2 text-stone-700">
+                            <MapPin size={14} className="text-stone-400" />
+                            <span className="font-bold">{tree.plots?.sector_name || 'Unassigned'}</span>
                           </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
                             <button 
                               onClick={() => handleEdit(tree)}
-                              className="p-2 text-stone-200 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                              className="p-2 text-stone-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-all md:opacity-0 md:group-hover:opacity-100"
+                              aria-label={`Edit ${tree.tree_type}`}
                             >
                               <Edit2 size={16} />
                             </button>
                             <button 
                               onClick={() => handleDelete(tree.tree_id)}
-                              className="p-2 text-stone-200 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                              className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all md:opacity-0 md:group-hover:opacity-100"
+                              aria-label={`Delete ${tree.tree_type}`}
                             >
                               <Trash2 size={16} />
                             </button>
@@ -238,7 +240,7 @@ export default function TreeList() {
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden divide-y divide-stone-100">
+            <div className="md:hidden divide-y divide-stone-200">
               <AnimatePresence>
                 {filteredTrees.map((tree) => (
                   <motion.div
@@ -250,30 +252,32 @@ export default function TreeList() {
                   >
                     <div className="flex justify-between items-start">
                       <div>
-                        <div className="font-bold text-stone-800">{tree.tree_type}</div>
-                        <div className="text-[10px] font-mono text-stone-400 uppercase">#{tree.tree_id.slice(0, 8).toUpperCase()}</div>
+                        <div className="font-bold text-stone-900">{tree.tree_type}</div>
+                        <div className="text-[10px] font-mono text-stone-600 font-bold uppercase">#{tree.tree_id.slice(0, 8).toUpperCase()}</div>
                       </div>
                       <div className="flex gap-1">
                         <button 
                           onClick={() => handleEdit(tree)}
-                          className="p-2.5 text-stone-400 active:bg-emerald-50 active:text-emerald-600 rounded-xl border border-stone-100"
+                          className="p-2.5 text-stone-600 active:bg-emerald-50 active:text-emerald-700 rounded-xl border border-stone-200"
+                          aria-label={`Edit ${tree.tree_type}`}
                         >
                           <Edit2 size={18} />
                         </button>
                         <button 
                           onClick={() => handleDelete(tree.tree_id)}
-                          className="p-2.5 text-stone-400 active:bg-red-50 active:text-red-500 rounded-xl border border-stone-100"
+                          className="p-2.5 text-stone-600 active:bg-red-50 active:text-red-600 rounded-xl border border-stone-200"
+                          aria-label={`Delete ${tree.tree_type}`}
                         >
                           <Trash2 size={18} />
                         </button>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <div className="flex items-center gap-1.5 text-stone-500 bg-stone-50 px-3 py-1.5 rounded-full border border-stone-100">
-                        <MapPin size={12} className="text-stone-300" />
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <div className="flex items-center gap-1.5 text-stone-700 bg-stone-100 px-3 py-1.5 rounded-full border border-stone-200">
+                        <MapPin size={12} className="text-stone-500" />
                         {tree.plots?.sector_name || 'Unassigned'}
                       </div>
-                      <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-full">
+                      <div className="text-[10px] font-black text-emerald-800 uppercase tracking-widest bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-200">
                         Healthy
                       </div>
                     </div>
@@ -326,10 +330,10 @@ export default function TreeList() {
 
               <form onSubmit={handleSubmit} className="p-8 flex-1 overflow-auto space-y-6">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Target Sector</label>
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest pl-1">Target Sector</label>
                   <select
                     required
-                    className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-emerald-600 rounded-lg transition-all outline-none text-sm font-medium"
+                    className="w-full px-4 py-3 bg-white border border-stone-300 focus:border-emerald-700 rounded-lg transition-all outline-none text-sm font-bold text-stone-900"
                     value={formData.plot_id}
                     onChange={(e) => setFormData({ ...formData, plot_id: e.target.value })}
                   >
@@ -341,11 +345,11 @@ export default function TreeList() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Species / Tree Type</label>
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest pl-1">Species / Tree Type</label>
                   <div className="relative">
                     <select
                       required
-                      className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-emerald-600 rounded-lg transition-all outline-none text-sm font-medium appearance-none"
+                      className="w-full px-4 py-3 bg-white border border-stone-300 focus:border-emerald-700 rounded-lg transition-all outline-none text-sm font-bold text-stone-900 appearance-none"
                       value={formData.tree_type}
                       onChange={(e) => setFormData({ ...formData, tree_type: e.target.value })}
                     >
@@ -354,27 +358,27 @@ export default function TreeList() {
                         <option key={s.species_id} value={s.common_name}>{s.common_name} ({s.scientific_name})</option>
                       ))}
                     </select>
-                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-300 pointer-events-none" />
+                    <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-600 pointer-events-none" />
                   </div>
                   {species.length === 0 && (
-                    <p className="text-[10px] text-amber-600 font-bold mt-1">Catalog is empty. Please add species first.</p>
+                    <p className="text-[10px] text-amber-800 font-bold mt-1">Catalog is empty. Please add species first.</p>
                   )}
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-stone-400 uppercase tracking-widest pl-1">Verified Planting Date</label>
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest pl-1">Verified Planting Date</label>
                   <input
                     required
                     type="date"
-                    className="w-full px-4 py-3 bg-white border border-stone-200 focus:border-emerald-600 rounded-lg transition-all outline-none text-sm font-medium"
+                    className="w-full px-4 py-3 bg-white border border-stone-300 focus:border-emerald-700 rounded-lg transition-all outline-none text-sm font-bold text-stone-900"
                     value={formData.planting_date}
                     onChange={(e) => setFormData({ ...formData, planting_date: e.target.value })}
                   />
                 </div>
 
-                <div className="p-6 bg-stone-100 border border-stone-200 rounded-xl flex gap-4 text-stone-500">
-                  <Info className="shrink-0 text-emerald-600" size={20} />
-                  <p className="text-xs leading-relaxed font-medium">
+                <div className="p-6 bg-stone-100 border border-stone-300 rounded-xl flex gap-4 text-stone-700">
+                  <Info className="shrink-0 text-emerald-800" size={20} />
+                  <p className="text-xs leading-relaxed font-bold">
                     {editingTree 
                       ? 'Saving changes will update the historical record for this specific asset ID.' 
                       : 'This record will be added to the project boundary. Asset ID will be automatically generated upon sync.'
