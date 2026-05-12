@@ -92,6 +92,30 @@ export default function App() {
     };
   }, []);
 
+  // Pre-fetch critical data for offline use
+  useEffect(() => {
+    if (!isOnline) return;
+
+    const prefetchData = async () => {
+      try {
+        console.log('Pre-fetching critical data for offline availability...');
+        const [plotsRes, speciesRes] = await Promise.all([
+          supabase.from('plots').select('*').order('created_at', { ascending: false }),
+          supabase.from('species').select('*').order('common_name', { ascending: true })
+        ]);
+
+        if (plotsRes.data) await offlineManager.cacheData('plots', plotsRes.data);
+        if (speciesRes.data) await offlineManager.cacheData('species', speciesRes.data);
+        
+        console.log('Prefetch complete.');
+      } catch (err) {
+        console.error('Prefetch error:', err);
+      }
+    };
+
+    prefetchData();
+  }, [isOnline]);
+
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
     

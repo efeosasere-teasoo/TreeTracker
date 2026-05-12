@@ -66,6 +66,11 @@ export default function PlotList() {
         setLoading(false);
       }
 
+      // If we are offline and couldn't load from cache, stop loading anyway
+      if (!navigator.onLine) {
+        setLoading(false);
+      }
+
       // 2. Fetch from network
       if (navigator.onLine) {
         const { data, error } = await supabase

@@ -73,7 +73,8 @@ export default function TreeList() {
       if (cachedPlots) setPlots(cachedPlots);
       if (cachedSpecies) setSpecies(cachedSpecies);
       
-      if (cachedTrees || cachedPlots || cachedSpecies) {
+      // If we have some data or we are offline, we can stop loading
+      if (cachedTrees || cachedPlots || cachedSpecies || !navigator.onLine) {
         setLoading(false);
       }
 
