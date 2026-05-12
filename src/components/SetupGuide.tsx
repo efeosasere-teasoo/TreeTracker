@@ -12,6 +12,18 @@ export default function SetupGuide() {
     setTesting(true);
     setTestResult(null);
     try {
+      // Check if credentials are set but are the defaults
+      const url = import.meta.env.VITE_SUPABASE_URL;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!url || url === 'https://placeholder.supabase.co' || !key || key === 'placeholder') {
+        setTestResult({
+          success: false,
+          message: '❌ Configuration Missing: VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY are not set. If you are on Vercel, add these to Project Settings > Environment Variables.'
+        });
+        return;
+      }
+
       // Simple health check query
       const { data, error } = await supabase.from('plots').select('count', { count: 'exact', head: true });
       
@@ -20,7 +32,12 @@ export default function SetupGuide() {
         if (error.code === '42P01') {
           setTestResult({ 
             success: true, 
-            message: 'Connected to Supabase! However, the "plots" table was not found. Please run the SQL script below.' 
+            message: '✅ Connected to Supabase! However, the database tables have not been created yet. Please run the SQL script below.' 
+          });
+        } else if (error.code === 'PGRST301' || error.message?.includes('JWT')) {
+          setTestResult({
+            success: false,
+            message: '❌ Invalid API Key: The Supabase Anon Key is incorrect. Please check your project settings.'
           });
         } else {
           throw error;
@@ -28,14 +45,17 @@ export default function SetupGuide() {
       } else {
         setTestResult({ 
           success: true, 
-          message: 'Connection successful! Tables are correctly initialized.' 
+          message: '✅ Connection successful! Your database is connected and correctly initialized.' 
         });
       }
     } catch (error: any) {
       console.error('Test connection error:', error);
+      const isFetchError = error.message === 'Failed to fetch' || error.message?.includes('NetworkError');
       setTestResult({ 
         success: false, 
-        message: `Connection failed: ${error.message || 'Check your URL and API key'}`
+        message: isFetchError 
+          ? '❌ Network Error: Failed to reach Supabase. Check if your URL is correct (must start with https://) and ensure your Supabase project is active.'
+          : `❌ Connection failed: ${error.message || 'Check your URL and API key'}`
       });
     } finally {
       setTesting(false);
